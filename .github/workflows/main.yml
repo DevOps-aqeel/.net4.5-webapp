@@ -1,0 +1,27 @@
+name: Deploy to Azure VM
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Deploy to Azure VM
+      uses: Azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Copy files to VM
+      run: |
+        robocopy $GITHUB_WORKSPACE <username>@<vm_ip_address>:<destination_folder> /MIR
+
+    - name: Execute deployment script on VM
+      run: |
+        ssh -o StrictHostKeyChecking=no <username>@<vm_ip_address> 'powershell -Command "cd <destination_folder> ; <deployment_script>"'
